@@ -514,9 +514,6 @@ void Engine_Init(const char* title, int screenWidth, int screenHeight) {
     /* Enable ANSI colors on modern terminals */
     g_engine.supportsANSI = 1;
     
-    /* Flush any stale input from terminal buffer (important for VSCode/IDE terminals) */
-    tcflush(STDIN_FILENO, TCIFLUSH);
-    
     /* Set terminal to raw mode */
     SetRawMode();
     
@@ -560,17 +557,7 @@ void Engine_Shutdown(void) {
  * GAME LOOP
  * ============================================================ */
 
-/** Flush all pending input from stdin */
-static void Engine_FlushInput(void) {
-#if defined(ENGINE_PLATFORM_LINUX) || defined(ENGINE_PLATFORM_MACOS) || defined(ENGINE_PLATFORM_UNIX)
-    tcflush(STDIN_FILENO, TCIFLUSH);
-#endif
-}
-
 void Engine_Run(void) {
-    /* Flush any input that might have accumulated during startup */
-    Engine_FlushInput();
-    
     while (g_engine.running) {
         /* Calculate delta time */
         unsigned long currentTime = GetCurrentTimeMs();

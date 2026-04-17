@@ -65,6 +65,12 @@ void Render_Init(int width, int height) {
     }
     
     g_renderInitialized = 1;
+    
+    /* Hide cursor and clear screen */
+    printf("\033[?25l");   /* Hide cursor */
+    printf("\033[2J");     /* Clear screen */
+    printf("\033[H");      /* Move cursor to home */
+    fflush(stdout);
 }
 
 void Render_Shutdown(void) {
@@ -136,7 +142,7 @@ void Render_Present(void) {
             
             /* Print character */
             if (cell->character != ' ') {
-                putchar(cell->character);
+                printf("%s", &cell->character);
             }
         }
         
@@ -148,14 +154,16 @@ void Render_Present(void) {
 }
 
 /* ============================================================
- * CURSOR CONTROL - Direct terminal output only for cursor movement
+ * CURSOR CONTROL
  * ============================================================ */
 
 void Render_SetPosition(int x, int y) {
     x = Clamp(x, 0, g_screen.width - 1);
     y = Clamp(y, 0, g_screen.height - 1);
     
-    /* Update internal cursor position */
+    printf("\033[%d;%df", y + 1, x + 1);
+    fflush(stdout);
+    
     g_screen.cursorX = x;
     g_screen.cursorY = y;
 }
@@ -171,7 +179,7 @@ void Render_ShowCursor(void) {
 }
 
 /* ============================================================
- * TEXT OUTPUT - All text goes to screen buffer, rendered in Present()
+ * TEXT OUTPUT
  * ============================================================ */
 
 static void SetCellChar(int x, int y, char c, RenderColor color, int bold) {
@@ -270,130 +278,41 @@ void Render_PrintBoldColored(const char* text, RenderColor color) {
 void Render_Printf(const char* format, ...) {
     if (!format || !g_renderInitialized) return;
     
-    /* Save cursor position */
-    int savedX = g_screen.cursorX;
-    int savedY = g_screen.cursorY;
-    
-    /* Calculate formatted string length and write to buffer */
+    char buffer[512];
     va_list args;
     va_start(args, format);
-    va_list args_copy;
-    va_copy(args_copy, args);
-    int len = vsnprintf(NULL, 0, format, args);
+    vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
     
-    if (len <= 0) return;
-    
-    char* buffer = (char*)malloc(len + 1);
-    if (!buffer) return;
-    
-    vsnprintf(buffer, len + 1, format, args_copy);
-    va_end(args_copy);
-    
-    /* Print each character with current cursor position */
-    int x = savedX;
-    int y = savedY;
-    
-    for (int i = 0; buffer[i] != '\0'; i++) {
-        if (x >= g_screen.width) {
-            x = 0;
-            y++;
-            if (y >= g_screen.height) break;
-        }
-        
-        SetCellChar(x, y, buffer[i], COLOR_WHITE, 0);
-        x++;
-    }
-    
-    free(buffer);
-    g_screen.cursorX = x;
-    g_screen.cursorY = y;
+    Render_Print(buffer);
 }
 
 void Render_PrintfColored(RenderColor color, const char* format, ...) {
     if (!format || !g_renderInitialized) return;
     
-    /* Save cursor position */
-    int savedX = g_screen.cursorX;
-    int savedY = g_screen.cursorY;
-    
+    char buffer[512];
     va_list args;
     va_start(args, format);
-    va_list args_copy;
-    va_copy(args_copy, args);
-    int len = vsnprintf(NULL, 0, format, args);
+    vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
     
-    if (len <= 0) return;
-    
-    char* buffer = (char*)malloc(len + 1);
-    if (!buffer) return;
-    
-    vsnprintf(buffer, len + 1, format, args_copy);
-    va_end(args_copy);
-    
-    int x = savedX;
-    int y = savedY;
-    
-    for (int i = 0; buffer[i] != '\0'; i++) {
-        if (x >= g_screen.width) {
-            x = 0;
-            y++;
-            if (y >= g_screen.height) break;
-        }
-        
-        SetCellChar(x, y, buffer[i], color, 0);
-        x++;
-    }
-    
-    free(buffer);
-    g_screen.cursorX = x;
-    g_screen.cursorY = y;
+    Render_PrintColored(buffer, color);
 }
 
 void Render_PrintfBoldColored(RenderColor color, const char* format, ...) {
     if (!format || !g_renderInitialized) return;
     
-    /* Save cursor position */
-    int savedX = g_screen.cursorX;
-    int savedY = g_screen.cursorY;
-    
+    char buffer[512];
     va_list args;
     va_start(args, format);
-    va_list args_copy;
-    va_copy(args_copy, args);
-    int len = vsnprintf(NULL, 0, format, args);
+    vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
     
-    if (len <= 0) return;
-    
-    char* buffer = (char*)malloc(len + 1);
-    if (!buffer) return;
-    
-    vsnprintf(buffer, len + 1, format, args_copy);
-    va_end(args_copy);
-    
-    int x = savedX;
-    int y = savedY;
-    
-    for (int i = 0; buffer[i] != '\0'; i++) {
-        if (x >= g_screen.width) {
-            x = 0;
-            y++;
-            if (y >= g_screen.height) break;
-        }
-        
-        SetCellChar(x, y, buffer[i], color, 1);
-        x++;
-    }
-    
-    free(buffer);
-    g_screen.cursorX = x;
-    g_screen.cursorY = y;
+    Render_PrintBoldColored(buffer, color);
 }
 
 /* ============================================================
- * BOX/PANEL DRAWING - Direct terminal output for box chars
+ * BOX/PANEL DRAWING
  * ============================================================ */
 
 void Render_DrawBox(int x, int y, int width, int height, RenderColor borderColor) {
