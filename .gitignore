@@ -1,0 +1,36 @@
+# Build artifacts
+build/
+Debug/
+Release/
+*.exe
+*.o
+*.obj
+*.lib
+*.dll
+*.so
+*.a
+*.pdb
+*.idb
+*.pdb
+
+# IDE files
+.vs/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Compiler intermediate files
+*.tlog
+*.log
+*.lastbuildstate
+unsuccessfulbuild
+
+# Windows project files (keep .sln for reference, ignore generated)
+*.vcxproj.user
+*.suo
+
+# Engine log files
+*.log
