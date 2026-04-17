@@ -83,19 +83,23 @@ ENGINE_DEMO = $(BIN_DIR)/engine_demo
 POTION_GAME = $(BIN_DIR)/potion_game
 
 # Default target: build everything
-all: potion_game
+all: $(POTION_GAME)
 
 # =============================================================================
 # ENGINE DEMO (just the engine, no game)
 # =============================================================================
-engine_demo: $(ENGINE_OBJ) | $(BIN_DIR)
+$(ENGINE_DEMO): $(ENGINE_OBJ) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(ENGINE_OBJ) $(LDFLAGS)
+
+engine_demo: $(ENGINE_DEMO)
 
 # =============================================================================
 # POTION MASTER GAME
 # =============================================================================
-potion_game: $(ENGINE_OBJ) $(GAME_OBJ) | $(BIN_DIR)
+$(POTION_GAME): $(ENGINE_OBJ) $(GAME_OBJ) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -o $@ $(ENGINE_OBJ) $(GAME_OBJ) $(LDFLAGS)
+
+potion_game: $(POTION_GAME)
 
 # =============================================================================
 # COMPILATION RULES
@@ -129,13 +133,13 @@ clean:
 # =============================================================================
 # RUN
 # =============================================================================
-run: potion_game
+run: $(POTION_GAME)
 	./$(POTION_GAME)
 
 # =============================================================================
 # INSTALL (optional, for system-wide installation)
 # =============================================================================
-install: potion_game
+install: $(POTION_GAME)
 	install -d /usr/local/bin
 	install $(POTION_GAME) /usr/local/bin/potion-game
 	@echo "Installed to /usr/local/bin/potion-game"
@@ -160,7 +164,7 @@ info:
 	@echo "  make engine_demo - Build just the engine demo"
 	@echo "  make potion_game - Build the Potion Master game"
 	@echo "  make clean    - Remove build artifacts"
-	@echo "  make run      - Build and run the game"
+	@echo "  make run      - Build and run the game (./build/bin/potion_game)"
 
 # =============================================================================
 # PHONY TARGETS
